@@ -6,6 +6,9 @@
 #include <linux/module.h>	/* Specifically, a module */
 #include <linux/init.h>	/* required for kernel initialization */
 #include <linux/fs.h>	/* contain filesystem structs and macros */
+#include <linux/mount.h> /*required to mount the files system*/
+#include <linux/err.h>
+
 
 /* Initializing a file_system_type struct */
 static struct file_system_type cmpe142_fs_type = {
@@ -24,8 +27,9 @@ struct inode *cmpe142_get_inode(struct super_block *sb, const struct inode *dir,
          umode_t mode, dev_t dev);
 
 /* required for mounting */
-extern struct dentry *cmpe142_mount(struct file_system_type *fs_type,
-         int flags, const char *dev_name, void *data);
+static struct vfsmount *cmpe142_mount = NULL;
+/*extern struct dentry *cmpe142_mount(struct file_system_type *fs_type,
+         int flags, const char *dev_name, void *data);*/
 
 /* associating file operations */
 extern const struct file_operations cmpe142_file_operations;
@@ -33,24 +37,36 @@ extern const struct file_operations cmpe142_file_operations;
 int init_module()
 {
 	/* registering filesystem */
-	int register_fs_status = register_filesystem(&cmpe142_fs_type);
+	int err = register_filesystem(&cmpe142_fs_type);
 	
 	/* checking if the registration was successful */
-	if (register_fs_status != 0){
+	if (err != 0){
 		printk(KERN_ALERT "Error: Could not register filesystem\n");
 		return -ENOMEM;
 	}
-
-	printk(KERN_INFO "Filesystem registered\n");
-
-	return 0;	/* success */
+	else
+	{
+		cmpe142_mount = vfs_kern_mount(&cmpe142_fs_type,0,"cmpe142",NULL);	
+		/*if(IS_ERR(cmpe142_mount))
+		{
+			err = PTR_ERR(cmpe142_mount);
+			printk(KERN_ALERT "Error: Could not mount Filesystem\n");
+			unregister_filesystem(&cmpe142_fs_type);
+			return err;
+				
+		}*/
+		printk(KERN_INFO "Filesystem registered\n");
+		return 0;	/* success */
+	}
 }
 
 void cleanup_module()
 {
         /* unregistering filesystem */
 	unregister_filesystem(&cmpe142_fs_type);
-	
+	mntput(cmpe142_mount);
 	printk(KERN_INFO "Filesystem removed\n");
 
 }
+
+MODULE_LICENSE("GPL");
