@@ -18,9 +18,9 @@ static struct file_system_type cmpe142_fs_type = {
         .kill_sb     = kill_block_super,
 };
 
-
 /* Initializing super block */
-int cmpe142_fill_super(struct super_block *sb, void *data, int silent);
+//int cmpe142_fill_super(struct super_block *sb, void *data, int silent);
+static struct super_block *cmpe142_super_block(struct super_block *, void *, int);
 
 /* Initializing inode */
 struct inode *cmpe142_get_inode(struct super_block *sb, const struct inode *dir,
@@ -46,7 +46,7 @@ int init_module()
 	}
 	else
 	{
-		cmpe142_mount = vfs_kern_mount(&cmpe142_fs_type,0,"cmpe142",NULL);	
+		//cmpe142_mount = vfs_kern_mount(&cmpe142_fs_type,0,"cmpe142",NULL);	
 		/*if(IS_ERR(cmpe142_mount))
 		{
 			err = PTR_ERR(cmpe142_mount);
@@ -64,7 +64,7 @@ void cleanup_module()
 {
         /* unregistering filesystem */
 	unregister_filesystem(&cmpe142_fs_type);
-	mntput(cmpe142_mount);
+	//mntput(cmpe142_mount);
 	printk(KERN_INFO "Filesystem removed\n");
 
 }
