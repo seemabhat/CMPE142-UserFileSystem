@@ -19,15 +19,19 @@
 #include <linux/slab.h>
 #include <asm/uaccess.h>
 #include "internal.h"
-
 #include "cmpe142fs.h"
-
 #include <linux/mm.h>
 
+//For Sockets
+#include <net/sock.h>
+#include <linux/netlink.h>
+#include <linux/skbuff.h>
+#define NETLINK_USER 142
 #define CMPE142_DEFAULT_MODE      0755
 
 static const struct super_operations cmpe142_ops;
 static const struct inode_operations cmpe142_dir_inode_operations;
+struct sock *netlink_sk = NULL;
 
 /* Initializing a file_system_type struct */
 /*
@@ -283,8 +287,21 @@ static const struct inode_operations cmpe142_dir_inode_operations = {
 /* associating file operations */
 extern const struct file_operations cmpe142_file_operations;
 
+static void socket_receiver(struct sk_buff *skb)
+{}
 int init_module()
 {
+
+	/**NETLINK_SOCKET_CREATION**/
+	/*netlink_sk=netlink_kernel_create(&init_net, NETLINK_USER, 0, socket_receiver,NULL,THIS_MODULE);
+	if(!netlink_sk)
+	{
+
+	    printk(KERN_ALERT "Error creating netlink socket.\n");
+	    return -4;
+
+	}*/
+	
 	/* registering filesystem */
 	int register_fs_status = register_filesystem(&cmpe142_fs_type);
 	
@@ -301,9 +318,11 @@ int init_module()
 
 void cleanup_module()
 {
-        /* unregistering filesystem */
-	unregister_filesystem(&cmpe142_fs_type);
-	
+        
+	/**NETLINK_SOCKET_RELEASE**/
+	//netlink_kernel_release(netlink_sk);
+	/* unregistering filesystem */
+	unregister_filesystem(&cmpe142_fs_type);	
 	printk(KERN_INFO "Filesystem removed\n");
 
 }
