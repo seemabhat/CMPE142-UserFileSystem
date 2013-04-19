@@ -26,7 +26,7 @@
 #include <net/sock.h>
 #include <linux/netlink.h>
 #include <linux/skbuff.h>
-#define NETLINK_USER 142
+#define NETLINK_USER 31
 #define CMPE142_DEFAULT_MODE      0755
 
 static const struct super_operations cmpe142_ops;
@@ -288,20 +288,55 @@ static const struct inode_operations cmpe142_dir_inode_operations = {
 extern const struct file_operations cmpe142_file_operations;
 
 static void socket_receiver(struct sk_buff *skb)
-{}
+{
+	struct nlmsghdr *nlh;
+	int pid;
+	struct sk_buff *skb_out;
+	int msg_size;
+	char *msg="Hello from kernel";
+	int res;
+
+	printk(KERN_INFO "Entering: %s\n", __FUNCTION__);
+
+	msg_size=strlen(msg);
+
+	nlh=(struct nlmsghdr*)skb->data;
+	printk(KERN_INFO "Netlink received msg payload:%s\n",(char*)nlmsg_data(nlh));
+	pid = nlh->nlmsg_pid; /*pid of sending process */
+
+	skb_out = nlmsg_new(msg_size,0);
+
+	if(!skb_out)
+	{
+
+	    printk(KERN_ERR "Failed to allocate new skb\n");
+	    return;
+
+	} 
+	nlh=nlmsg_put(skb_out,0,0,NLMSG_DONE,msg_size,0);  
+	NETLINK_CB(skb_out).dst_group = 0; /* not in mcast group */
+	strncpy(nlmsg_data(nlh),msg,msg_size);
+
+	res=nlmsg_unicast(netlink_sk,skb_out,pid);
+
+	if(res<0)
+	    printk(KERN_INFO "Error while sending bak to user\n");
+
+	
+}
 int init_module()
 {
 
 	/**NETLINK_SOCKET_CREATION**/
-	/*netlink_sk=netlink_kernel_create(&init_net, NETLINK_USER, 0, socket_receiver,NULL,THIS_MODULE);
+	netlink_sk=netlink_kernel_create(&init_net, NETLINK_USER, 0, socket_receiver,NULL,THIS_MODULE);
 	if(!netlink_sk)
 	{
 
 	    printk(KERN_ALERT "Error creating netlink socket.\n");
 	    return -4;
 
-	}*/
-	
+	}
+
 	/* registering filesystem */
 	int register_fs_status = register_filesystem(&cmpe142_fs_type);
 	
@@ -320,7 +355,7 @@ void cleanup_module()
 {
         
 	/**NETLINK_SOCKET_RELEASE**/
-	//netlink_kernel_release(netlink_sk);
+	netlink_kernel_release(netlink_sk);
 	/* unregistering filesystem */
 	unregister_filesystem(&cmpe142_fs_type);	
 	printk(KERN_INFO "Filesystem removed\n");
