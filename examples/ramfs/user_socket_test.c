@@ -48,7 +48,9 @@ msg.msg_namelen=sizeof(d_nladdr);
 msg.msg_iov = &iov;
 msg.msg_iovlen = 1;
 sendmsg(fd, &msg, 0);
-
+printf("Waiting for message from Kernel\n");
+recvmsg(fd,&msg,0);
+printf("Received Message: %s\n",NLMSG_DATA(nlh));
 close(fd);
 return (EXIT_SUCCESS);
 }

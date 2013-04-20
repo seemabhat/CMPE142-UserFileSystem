@@ -293,7 +293,7 @@ static void socket_receiver(struct sk_buff *skb)
 	int pid;
 	struct sk_buff *skb_out;
 	int msg_size;
-	char *msg="Hello from kernel";
+	char *msg="Hello from FS cmpe142";
 	int res;
 
 	printk(KERN_INFO "Entering: %s\n", __FUNCTION__);
