@@ -73,18 +73,44 @@ const struct address_space_operations cmpe142_aops = {
         //.set_page_dirty = __set_page_dirty_no_writeback,
 };
 
+/**START FILE_OPERATIONS**/
+static int cmpe142_open(struct inode *inode,struct file *file){
+printk(KERN_INFO"open called]\n");
+return 0;
+}
+
+static ssize_t cmpe142_read(struct file *filep,
+char *buffer, //buffer to fill with data
+size_t length, //the length of buffer
+loff_t *offset //offset in file
+){
+printk(KERN_INFO"read called]\n");
+return 0;
+}
+
+static ssize_t cmpe142_write(struct file *file,
+const char *buff,
+size_t len,
+loff_t *off){
+printk(KERN_INFO"write called]\n");
+return 0;
+}
+
+static int cmpe142_release(struct inode *inode, struct file *file)
+{
+printk(KERN_INFO"release called]\n");
+return 0;
+}
 const struct file_operations cmpe142_file_operations = {
-        .read           = do_sync_read,
-        .aio_read       = generic_file_aio_read,
-        .write          = do_sync_write,
-        .aio_write      = generic_file_aio_write,
-        .mmap           = generic_file_mmap,
-        .fsync          = noop_fsync,
-        .splice_read    = generic_file_splice_read,
-        .splice_write   = generic_file_splice_write,
-        .llseek         = generic_file_llseek,
+        .read           = cmpe142_read,
+        .write          = cmpe142_write,
+	.open 		= cmpe142_open,
+	.release	= cmpe142_release,
 };
 
+
+
+/**END FILE_OPERATIONS**/
 const struct inode_operations cmpe142_file_inode_operations = {
         .setattr        = simple_setattr,
         .getattr        = simple_getattr,
