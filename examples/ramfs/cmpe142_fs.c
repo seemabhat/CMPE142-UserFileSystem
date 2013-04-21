@@ -74,9 +74,32 @@ const struct address_space_operations cmpe142_aops = {
 };
 
 /**START FILE_OPERATIONS**/
+
 static int cmpe142_open(struct inode *inode,struct file *file){
-printk(KERN_INFO"open called]\n");
-return 0;
+	int response_received=1;
+	int error = 0;
+	int msg_length;
+	struct sk_buff *skb_out;
+	struct nlmsghdr *nlh;
+
+	printk(KERN_INFO"open called : %s\n",file->f_path.dentry->d_iname);
+	char *filename = file->f_path.dentry->d_iname;
+	msg_length = strlen(filename);
+	skb_out = nlmsg_new(msg_length,0);
+	if(!skb_out)
+	{
+		  printk(KERN_ERR "Failed to allocate new skb\n");
+		    return;	
+	}
+
+	nlh = nlmsg_put(skb_out,0,0,NLMSG_DONE,msg_length,0);
+	NETLINK_CB(skb_out).dst_group = 0;
+	strncpy(nlmsg_data(nlh),filename,msg_length);
+	nlmsg_unicast(netlink_sk,skb_out,nlh->nlmsg_pid);
+
+	//wait till success received from daemon.
+	//while(!response_received);
+	return error;
 }
 
 static ssize_t cmpe142_read(struct file *filep,
@@ -84,7 +107,7 @@ char *buffer, //buffer to fill with data
 size_t length, //the length of buffer
 loff_t *offset //offset in file
 ){
-printk(KERN_INFO"read called]\n");
+printk(KERN_INFO"read called\n");
 return 0;
 }
 
@@ -92,13 +115,13 @@ static ssize_t cmpe142_write(struct file *file,
 const char *buff,
 size_t len,
 loff_t *off){
-printk(KERN_INFO"write called]\n");
+printk(KERN_INFO"write called\n");
 return 0;
 }
 
 static int cmpe142_release(struct inode *inode, struct file *file)
 {
-printk(KERN_INFO"release called]\n");
+printk(KERN_INFO"release called\n");
 return 0;
 }
 const struct file_operations cmpe142_file_operations = {
