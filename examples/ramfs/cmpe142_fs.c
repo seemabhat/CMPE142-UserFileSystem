@@ -20,6 +20,7 @@
 #include "internal.h"
 #include "cmpe142fs.h"
 #include <linux/mm.h>
+#include <linux/string.h>
 
 //For Sockets
 #include <net/sock.h>
@@ -74,7 +75,7 @@ const struct address_space_operations cmpe142_aops = {
 
 /**START FILE_OPERATIONS**/
 
-/*static int cmpe142_open(struct inode *inode,struct file *file){
+static int cmpe142_open(struct inode *inode,struct file *file){
 	int response_received=1;
 	int error = 0;
 	int msg_length;
@@ -82,10 +83,10 @@ const struct address_space_operations cmpe142_aops = {
 	struct nlmsghdr *nlh;
 	const char *filename = file->f_path.dentry->d_iname;
 	const char *oper = "OPEN ";
-	//char *msg = (char *) malloc(strlen(filename) + strlen(msg)+1);	
-	//strcpy(msg,filename);
-	//strcat(msg,oper);
-	printk(KERN_INFO"open called : %s\n",oper);	
+	//char *msg = (char *) malloc(strlen(filename) + strlen(oper)+1);	
+	//strcpy(msg,oper);
+	//strcat(msg,filename);
+	printk(KERN_INFO"open called : %s\n",filename);	
 	
 	msg_length = strlen(filename);
 	skb_out = nlmsg_new(msg_length,0);
@@ -98,7 +99,7 @@ const struct address_space_operations cmpe142_aops = {
 	nlh = nlmsg_put(skb_out,0,0,NLMSG_DONE,msg_length,0);
 	NETLINK_CB(skb_out).dst_group = 0;
 	strncpy(nlmsg_data(nlh),filename,msg_length);
-//	nlmsg_unicast(netlink_sk,skb_out,nlh->nlmsg_pid);
+	//nlmsg_unicast(netlink_sk,skb_out,nlh->nlmsg_pid);
 
 	//wait till success received from daemon.
 	//while(!response_received);
@@ -127,6 +128,7 @@ static int cmpe142_release(struct inode *inode, struct file *file)
 printk(KERN_INFO"release called\n");
 return 0;
 }
+
 const struct file_operations cmpe142_file_operations = {
         .read           = cmpe142_read,
         .write          = cmpe142_write,
@@ -134,8 +136,7 @@ const struct file_operations cmpe142_file_operations = {
 	.release	= cmpe142_release,
 };
 
-*/
-
+/*
 const struct file_operations cmpe142_file_operations = {
 	.read		= do_sync_read,
 	.aio_read	= generic_file_aio_read,
@@ -146,7 +147,8 @@ const struct file_operations cmpe142_file_operations = {
 	.splice_read	= generic_file_splice_read,
 	.splice_write	= generic_file_splice_write,
 	.llseek		= generic_file_llseek,
-};
+	.open		= cmpe142_open,
+};*/
 /**END FILE_OPERATIONS**/
 const struct inode_operations cmpe142_file_inode_operations = {
         .setattr        = simple_setattr,
@@ -352,7 +354,10 @@ extern const struct file_operations cmpe142_file_operations;
 
 static void socket_receiver(struct sk_buff *skb)
 {
-	struct nlmsghdr *nlh;
+struct nlmsghdr *nlh;
+char *dataFromUser;
+//TEST_COMMUNICATION_CODE
+	
 	int pid;
 	struct sk_buff *skb_out;
 	int msg_size;
@@ -384,8 +389,13 @@ static void socket_receiver(struct sk_buff *skb)
 
 	if(res<0)
 	    printk(KERN_INFO "Error while sending bak to user\n");
-
-	
+//*****Netlink Code to receive data from User Space*****
+/*	nlh=(struct nlmsghdr*)skb->data;
+	dataFromUser = (char*)nlmsg_data(nlh);
+	dataFromUser = strtok(dataFromUser," ");
+	printk(KERN_INFO "NETLINK Data from USER_SPACE:%s\n",dataFromUser);
+	*/
+//****End Code***********************************
 }
 int init_module()
 {
