@@ -84,9 +84,14 @@ static int cmpe142_open(struct inode *inode,struct file *file){
 	const char *filename = file->f_path.dentry->d_iname;
 	const char *oper = "OPEN ";
 	//char *msg = (char *) malloc(strlen(filename) + strlen(oper)+1);	
+	char *msg = (char *) kmalloc(strlen(filename) + strlen(oper)+1, GFP_KERNEL);
 	//strcpy(msg,oper);
 	//strcat(msg,filename);
+	strcpy(msg,oper);		
+	strcat(msg,filename);
 	printk(KERN_INFO"open called : %s\n",filename);	
+	printk(KERN_INFO"open called : %s\n", msg);	
+	printk(KERN_INFO"After kmalloc\n");
 	
 	msg_length = strlen(filename);
 	skb_out = nlmsg_new(msg_length,0);
